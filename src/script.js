@@ -3,145 +3,41 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import GUI from 'lil-gui';
 import gsap from 'gsap';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 console.log(THREE);
 
 let sc = new THREE.Scene()
 
-let rgbe = new RGBELoader()
-rgbe.load('texture/environmentMap/2k2.hdr',(texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping
-    sc.background = texture
-    sc.environment = texture
-})
+// Add lighting for better text visibility
+let directionalLight = new THREE.DirectionalLight('#ffffff', 1)
+directionalLight.position.set(10, 10, 10)
+directionalLight.target.position.set(0, 0, 0)
+sc.add(directionalLight)
+
+let ambientLight = new THREE.AmbientLight('#ffffff', 0.6)
+sc.add(ambientLight)
 
 
-let matcapTexture = new THREE.TextureLoader().load('texture/matcaps/3.png')
 
-// let aml = new THREE.AmbientLight('#FFFFFF',1)
-let directionalLight = new THREE.DirectionalLight('#FFFF12',1)
-directionalLight.position.set(1,1,1)
 
-let texture = new THREE.TextureLoader()
-let nama = texture.load('texture/nama/ASLI.jpg')
-nama.minFilter = THREE.NearestFilter
-nama.magFilter = THREE.NearestFilter
-nama.colorSpace = THREE.SRGBColorSpace
 
-let namaAO = texture.load('texture/nama/AO.jpg')
-let namadis = texture.load('texture/nama/DISPLACEMENT.jpg')
-let namaNormal = texture.load('texture/nama/NORMAL.jpg')
-let namaMetal = texture.load('texture/nama/METAL.jpg')
-let namaROUGH = texture.load('texture/nama/ROUGH.jpg')
 
-let material = new THREE.MeshStandardMaterial({
-      side: THREE.DoubleSide,
-      map: nama,
-      aoMap: namaAO,
-      aoMapIntensity: 0.1,
-      displacementMap: namadis,
-      displacementScale: 0.3,
-      normalMap: namaNormal,
-      normalScale: new THREE.Vector2(1,1),
-      metalnessMap: namaMetal,
-      roughnessMap: namaROUGH,
-      roughness: 0.5,
-      metalness: 0.5,
-    })
 
-// material.sheenColor.set(1,1,1)    
-// material.roughness = 0.5
-// material.metalness = 0.5
+
 
 let gui = new GUI({
     title : "تغییرات مکعبی",
     width : 300
 })
 
-// gui.addColor(material,'sheenColor').name('Sheen Color')
 
 
-// Fallback material in case texture doesn't load
-let fallbackMaterial = new THREE.MeshPhysicalMaterial({
-    side: THREE.DoubleSide,
-    flatShading:true,
-    
-})
-
-let mesh1 = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material,
-    fallbackMaterial,
-)
-let mesh2 = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5,35,35),
-    material
-)
-let mesh3 = new THREE.Mesh(
-    new THREE.TorusGeometry(0.4,0.2,16,32),
-    material
-)
-
-mesh1.position.x = -2
-mesh2.position.x = 0
-mesh3.position.x = 2
-
-
-
-// let rgbe = new RGBELoader()
-
-
-let materialChange = {
-    color : 'whitesmoke',
-    subdivisions : 2,
-}
-
-
-// let basicTexture = texture.load("texture/door/door.jpg")
-// basicTexture.colorSpace = THREE.SRGBColorSpace 
-
-// basicTexture.repeat.x = 2
-// basicTexture.repeat.y = 2
-
-// basicTexture.wrapS = THREE.RepeatWrapping
-// basicTexture.wrapT = THREE.RepeatWrapping
-
-// basicTexture.offset.x = 0.5
-// basicTexture.offset.y = 0.5
-
-// basicTexture.rotation = Math.PI/4
-// basicTexture.center.x = 0.5
-// basicTexture.center.y = 0.5
-
-// basicTexture.minFilter = THREE.NearestFilter
-
-let checkerboard = texture.load("texture/checkerboard-8x8.png")
-checkerboard.minFilter = THREE.NearestFilter
-checkerboard.magFilter = THREE.NearestFilter
-
-checkerboard.repeat.x = 2
-checkerboard.repeat.y = 2
-
-checkerboard.wrapS = THREE.RepeatWrapping
-checkerboard.wrapT = THREE.RepeatWrapping
 
 
  
 
-let box = new THREE.BoxGeometry(2,2,2)
-// let material = new THREE.MeshBasicMaterial({color:'whitesmoke',side: THREE.DoubleSide,map:checkerboard})
-let mesh = new THREE.Mesh(box,material) 
-// let box3 = new THREE.SphereGeometry(7.9,50,100)
-// let material3 = new THREE.MeshBasicMaterial({color:'navy',side: THREE.DoubleSide})
-// let mesh3 = new THREE.Mesh(box3,material3) 
-
-sc.add(mesh1,mesh2,mesh3,directionalLight)
-
-console.log('Scene objects:', sc.children)
-console.log('Mesh1 (Plane):', mesh1)
-console.log('Mesh2 (Sphere):', mesh2)
-console.log('Mesh3 (Torus):', mesh3)
 
 let size = {
     width : window.innerWidth,
@@ -156,20 +52,17 @@ window.addEventListener("resize",() => {
     renderer.setSize(size.width,size.height)
 })
 
-let camera = new THREE.PerspectiveCamera(75,size.width/size.height)
-camera.position.set(0,0,5)
+let camera = new THREE.PerspectiveCamera(35,size.width/size.height)
+camera.position.set(0,0,200)
 camera.lookAt(0,0,0)
 sc.add(camera)
 
 console.log('Camera position:', camera.position)
 console.log('Camera looking at:', camera.getWorldDirection(new THREE.Vector3()))
 
-// mesh3.position.set(0,5,0)
 
-// Position the meshes properly
-mesh1.position.set(-2,0,0)
-mesh2.position.set(0,0,0)
-mesh3.position.set(2,0,0)
+
+
 
 let canvas = document.querySelector(".web")
 
@@ -179,7 +72,6 @@ let renderer = new THREE.WebGLRenderer({
 })
 
 renderer.setSize(size.width,size.height)
-console.log(box);
 
 const clock = new THREE.Clock()
 
@@ -208,40 +100,7 @@ cube.close()
 
 
 
-// Controls for mesh1 (Plane)
-cube.add(mesh1.position,"x",-5,5,0.1).name("Plane X")
-cube.add(mesh1.position,"y",-5,5,0.1).name("Plane Y")
-cube.add(mesh1.position,"z",-5,5,0.1).name("Plane Z")
-cube.add(mesh1,'visible').name("Plane Visible")
-cube.add(mesh1.rotation,'x',-Math.PI,Math.PI,0.1).name("Plane X rotation")
-cube.add(mesh1.rotation,'y',-Math.PI,Math.PI,0.1).name("Plane Y rotation")
-cube.add(mesh1.rotation,'z',-Math.PI,Math.PI,0.1).name("Plane Z rotation")
 
-// Controls for mesh2 (Sphere)
-cube.add(mesh2.position,"x",-5,5,0.1).name("Sphere X")
-cube.add(mesh2.position,"y",-5,5,0.1).name("Sphere Y")
-cube.add(mesh2.position,"z",-5,5,0.1).name("Sphere Z")
-cube.add(mesh2,'visible').name("Sphere Visible")
-cube.add(mesh2.rotation,'x',-Math.PI,Math.PI,0.1).name("Sphere X rotation")
-cube.add(mesh2.rotation,'y',-Math.PI,Math.PI,0.1).name("Sphere Y rotation")
-cube.add(mesh2.rotation,'z',-Math.PI,Math.PI,0.1).name("Sphere Z rotation")
-
-// Controls for mesh3 (Torus)
-cube.add(mesh3.position,"x",-5,5,0.1).name("Torus X")
-cube.add(mesh3.position,"y",-5,5,0.1).name("Torus Y")
-cube.add(mesh3.position,"z",-5,5,0.1).name("Torus Z")
-cube.add(mesh3,'visible').name("Torus Visible")
-cube.add(mesh3.rotation,'x',-Math.PI,Math.PI,0.1).name("Torus X rotation")
-cube.add(mesh3.rotation,'y',-Math.PI,Math.PI,0.1).name("Torus Y rotation")
-cube.add(mesh3.rotation,'z',-Math.PI,Math.PI,0.1).name("Torus Z rotation")
-
-materialChange.spin = () => {
-    gsap.to(mesh1.rotation,{duration:1,delay:0,y:mesh1.rotation.y + 2})
-    gsap.to(mesh2.rotation,{duration:1,delay:0,y:mesh2.rotation.y + 2})
-    gsap.to(mesh3.rotation,{duration:1,delay:0,y:mesh3.rotation.y + 2})
-}
-
-cube.add(materialChange,'spin')
 
 
 
@@ -295,6 +154,45 @@ window.addEventListener("keydown",(e) => {
         orbitControls.enabled = true
     }
 })
+
+
+let fontLoader = new FontLoader()
+fontLoader.load("helvetiker_regular.typeface.json",(font) => {
+    let textGeometry = new TextGeometry("MasoudJs",{
+        font: font,
+        size: 50,
+        height: 0.05,
+        curveSegments: 0.1,
+        bevelEnabled: true,
+        bevelThickness: 0.005,
+        bevelSize: 0.01,
+        bevelOffset: 0.005,
+        bevelSegments: 5,
+    })
+
+textGeometry.center()
+    
+    
+
+    let textMaterial = new THREE.MeshBasicMaterial({wireframe: true,color: 'orange'})
+    let textMesh = new THREE.Mesh(textGeometry,textMaterial)
+    textMesh.position.set(0,0,0)
+    sc.add(textMesh)
+})
+
+let Sphere = new THREE.SphereGeometry(0.1,16,16)
+let SphereMaterial = new THREE.MeshBasicMaterial({color: 'whitesmoke', transparent: true, opacity: 0.8})
+let count = 2000
+for(let i = 0; i <= count; i++){
+    let SphereMesh = new THREE.Mesh(Sphere,SphereMaterial)
+    SphereMesh.scale.set(10,10,10)
+    SphereMesh.position.x = Math.random() * 800 - 400;
+    SphereMesh.position.y = Math.random() * 800 - 400
+    SphereMesh.position.z = Math.random() * 800 - 400
+    sc.add(SphereMesh)
+}
+
+
 
 let animation = () => { 
     const elapsedTime = clock.getElapsedTime()
