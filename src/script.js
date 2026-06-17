@@ -26,15 +26,15 @@ let material = new THREE.MeshToonMaterial({
 })
 
 let box = new THREE.Mesh(
-    new THREE.CapsuleGeometry(1,1,1),
+    new THREE.CapsuleGeometry(1,0.2,0.1),
     material
 )
 let cone = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.2,1,1),
+    new THREE.CylinderGeometry(0.1,1,1),
     material
 )
 let trous = new THREE.Mesh(
-    new THREE.TorusGeometry(1,0.7,12,70),
+    new THREE.TorusGeometry(1,0.4,10,10),
     material
 )
 
@@ -44,9 +44,9 @@ box.position.y = parametr.distance * 0.1
 cone.position.y = - parametr.distance * 0.9
 trous.position.y = - parametr.distance * 2.1
 
-box.position.x = 1.5
-cone.position.x = -2
-trous.position.x = 1.5
+box.position.x = -.9
+cone.position.x = -0.1
+trous.position.x = .1
 
 let models = [box,cone,trous]
 
