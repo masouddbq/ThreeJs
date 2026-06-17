@@ -1,154 +1,98 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-import GUI from 'lil-gui';
-import gsap from 'gsap';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import GUI from 'lil-gui'
+import gsap from 'gsap'
 
-console.log(THREE);
+
+
 
 let sc = new THREE.Scene()
 
-let rgbe = new RGBELoader()
-rgbe.load('texture/environmentMap/2k2.hdr',(texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping
-    sc.background = texture
-    sc.environment = texture
-})
+let gui = new GUI({title:'color controls'})
 
-
-let matcapTexture = new THREE.TextureLoader().load('texture/matcaps/3.png')
-
-// let aml = new THREE.AmbientLight('#FFFFFF',1)
-let directionalLight = new THREE.DirectionalLight('#FFFF12',1)
-directionalLight.position.set(1,1,1)
-
-let texture = new THREE.TextureLoader()
-let nama = texture.load('texture/nama/ASLI.jpg')
-nama.minFilter = THREE.NearestFilter
-nama.magFilter = THREE.NearestFilter
-nama.colorSpace = THREE.SRGBColorSpace
-
-let namaAO = texture.load('texture/nama/AO.jpg')
-let namadis = texture.load('texture/nama/DISPLACEMENT.jpg')
-let namaNormal = texture.load('texture/nama/NORMAL.jpg')
-let namaMetal = texture.load('texture/nama/METAL.jpg')
-let namaROUGH = texture.load('texture/nama/ROUGH.jpg')
-
-let material = new THREE.MeshStandardMaterial({
-      side: THREE.DoubleSide,
-      map: nama,
-      aoMap: namaAO,
-      aoMapIntensity: 0.1,
-      displacementMap: namadis,
-      displacementScale: 0.3,
-      normalMap: namaNormal,
-      normalScale: new THREE.Vector2(1,1),
-      metalnessMap: namaMetal,
-      roughnessMap: namaROUGH,
-      roughness: 0.5,
-      metalness: 0.5,
-    })
-
-// material.sheenColor.set(1,1,1)    
-// material.roughness = 0.5
-// material.metalness = 0.5
-
-let gui = new GUI({
-    title : "تغییرات مکعبی",
-    width : 300
-})
-
-// gui.addColor(material,'sheenColor').name('Sheen Color')
-
-
-// Fallback material in case texture doesn't load
-let fallbackMaterial = new THREE.MeshPhysicalMaterial({
-    side: THREE.DoubleSide,
-    flatShading:true,
-    
-})
-
-let mesh1 = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material,
-    fallbackMaterial,
-)
-let mesh2 = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5,35,35),
-    material
-)
-let mesh3 = new THREE.Mesh(
-    new THREE.TorusGeometry(0.4,0.2,16,32),
-    material
-)
-
-mesh1.position.x = -2
-mesh2.position.x = 0
-mesh3.position.x = 2
-
-
-
-// let rgbe = new RGBELoader()
-
-
-let materialChange = {
-    color : 'whitesmoke',
-    subdivisions : 2,
+let parametr = {
+    distance : 5,
+    cnt : 5000,
+    color:'#FFFFFF'
 }
 
+let textureloader = new THREE.TextureLoader()
+let tx_gradient = textureloader.load('gradients/3.jpg')
+tx_gradient.magFilter = THREE.NearestFilter
 
-// let basicTexture = texture.load("texture/door/door.jpg")
-// basicTexture.colorSpace = THREE.SRGBColorSpace 
+let dots_tx = textureloader.load('textures/particles/1.png')
 
-// basicTexture.repeat.x = 2
-// basicTexture.repeat.y = 2
+let material = new THREE.MeshToonMaterial({
+    gradientMap:tx_gradient
+})
 
-// basicTexture.wrapS = THREE.RepeatWrapping
-// basicTexture.wrapT = THREE.RepeatWrapping
+let box = new THREE.Mesh(
+    new THREE.CapsuleGeometry(1,1,1),
+    material
+)
+let cone = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.2,1,1),
+    material
+)
+let trous = new THREE.Mesh(
+    new THREE.TorusGeometry(1,0.7,12,70),
+    material
+)
 
-// basicTexture.offset.x = 0.5
-// basicTexture.offset.y = 0.5
+sc.add(box,cone,trous)
 
-// basicTexture.rotation = Math.PI/4
-// basicTexture.center.x = 0.5
-// basicTexture.center.y = 0.5
+box.position.y = parametr.distance * 0.1
+cone.position.y = - parametr.distance * 0.9
+trous.position.y = - parametr.distance * 2.1
 
-// basicTexture.minFilter = THREE.NearestFilter
+box.position.x = 1.5
+cone.position.x = -2
+trous.position.x = 1.5
 
-let checkerboard = texture.load("texture/checkerboard-8x8.png")
-checkerboard.minFilter = THREE.NearestFilter
-checkerboard.magFilter = THREE.NearestFilter
-
-checkerboard.repeat.x = 2
-checkerboard.repeat.y = 2
-
-checkerboard.wrapS = THREE.RepeatWrapping
-checkerboard.wrapT = THREE.RepeatWrapping
+let models = [box,cone,trous]
 
 
- 
+//particles
 
-let box = new THREE.BoxGeometry(2,2,2)
-// let material = new THREE.MeshBasicMaterial({color:'whitesmoke',side: THREE.DoubleSide,map:checkerboard})
-let mesh = new THREE.Mesh(box,material) 
-// let box3 = new THREE.SphereGeometry(7.9,50,100)
-// let material3 = new THREE.MeshBasicMaterial({color:'navy',side: THREE.DoubleSide})
-// let mesh3 = new THREE.Mesh(box3,material3) 
+let dots = new THREE.BufferGeometry()
+let dotspositions = new Float32Array(parametr.cnt * 3)
+for(let i = 0 ; i < parametr.cnt ; ++i){
 
-sc.add(mesh1,mesh2,mesh3,directionalLight)
+    let i3 = i * 3
 
-console.log('Scene objects:', sc.children)
-console.log('Mesh1 (Plane):', mesh1)
-console.log('Mesh2 (Sphere):', mesh2)
-console.log('Mesh3 (Torus):', mesh3)
+    dotspositions[i3 + 0] = ( Math.random() - 0.5 ) * 20
+    dotspositions[i3 + 1] = ( Math.random() - 0.5 ) * 40
+    dotspositions[i3 + 2] = ( Math.random() - 0.5 ) * 20
+
+}
+let dotsattr = new THREE.BufferAttribute(dotspositions,3)
+dots.setAttribute('position',dotsattr)
+
+let dots_material = new THREE.PointsMaterial({
+    size:0.2,
+    color:parametr.color,
+    transparent:true,
+    alphaMap:dots_tx,
+    sizeAttenuation:true,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending
+})
+
+let dotspoints = new THREE.Points(dots,dots_material)
+sc.add(dotspoints)
+
+
+//light
+
+let direct = new THREE.DirectionalLight('#FFFFFF',1)
+direct.position.set(1,1,1)
+sc.add(direct) 
 
 let size = {
     width : window.innerWidth,
     height : window.innerHeight
 }
 
-window.addEventListener("resize",() => {
+window.addEventListener('resize',()=>{
     size.width = window.innerWidth
     size.height = window.innerHeight
     camera.aspect = size.width / size.height
@@ -156,161 +100,87 @@ window.addEventListener("resize",() => {
     renderer.setSize(size.width,size.height)
 })
 
-let camera = new THREE.PerspectiveCamera(75,size.width/size.height)
-camera.position.set(0,0,5)
-camera.lookAt(0,0,0)
-sc.add(camera)
+let camera_gp = new THREE.Group()
+sc.add(camera_gp)
 
-console.log('Camera position:', camera.position)
-console.log('Camera looking at:', camera.getWorldDirection(new THREE.Vector3()))
 
-// mesh3.position.set(0,5,0)
+let camera = new THREE.PerspectiveCamera(35,size.width/size.height)
+camera.position.z = 8
+camera_gp.add(camera)
 
-// Position the meshes properly
-mesh1.position.set(-2,0,0)
-mesh2.position.set(0,0,0)
-mesh3.position.set(2,0,0)
 
-let canvas = document.querySelector(".web")
-
+let canvas = document.querySelector('.web')
 let renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true
+    antialias:true,
+    alpha:true
 })
 
 renderer.setSize(size.width,size.height)
-console.log(box);
-
-const clock = new THREE.Clock()
-
-// Create both controls
-let pointerLock = new PointerLockControls(camera, canvas)
-let orbitControls = new OrbitControls(camera, canvas)
-
-// Configure OrbitControls
-orbitControls.enableDamping = true
-orbitControls.dampingFactor = 0.05
-orbitControls.enablePan = true
-orbitControls.enableZoom = true
 
 
 
-gui.hide()
-gui.close()
-window.addEventListener("load",() => {
-    setTimeout(() => {
-        gui.show()
-    }, 1000)
+//scroll
+
+let scrolly = window.scrollY
+let start_section = 0
+window.addEventListener('scroll',()=>{
+    scrolly = window.scrollY
+    let new_section = Math.round(scrolly / size.height)
+    if(new_section!=start_section){
+        start_section = new_section
+        gsap.to(
+            models[start_section].rotation,{
+                duration:1.8,
+                x:'+=3',
+                y:'+=3'
+            }
+        )
+    }
+
 })
 
-let cube = gui.addFolder("مکعب")
-cube.close()
+//cursor
 
-
-
-// Controls for mesh1 (Plane)
-cube.add(mesh1.position,"x",-5,5,0.1).name("Plane X")
-cube.add(mesh1.position,"y",-5,5,0.1).name("Plane Y")
-cube.add(mesh1.position,"z",-5,5,0.1).name("Plane Z")
-cube.add(mesh1,'visible').name("Plane Visible")
-cube.add(mesh1.rotation,'x',-Math.PI,Math.PI,0.1).name("Plane X rotation")
-cube.add(mesh1.rotation,'y',-Math.PI,Math.PI,0.1).name("Plane Y rotation")
-cube.add(mesh1.rotation,'z',-Math.PI,Math.PI,0.1).name("Plane Z rotation")
-
-// Controls for mesh2 (Sphere)
-cube.add(mesh2.position,"x",-5,5,0.1).name("Sphere X")
-cube.add(mesh2.position,"y",-5,5,0.1).name("Sphere Y")
-cube.add(mesh2.position,"z",-5,5,0.1).name("Sphere Z")
-cube.add(mesh2,'visible').name("Sphere Visible")
-cube.add(mesh2.rotation,'x',-Math.PI,Math.PI,0.1).name("Sphere X rotation")
-cube.add(mesh2.rotation,'y',-Math.PI,Math.PI,0.1).name("Sphere Y rotation")
-cube.add(mesh2.rotation,'z',-Math.PI,Math.PI,0.1).name("Sphere Z rotation")
-
-// Controls for mesh3 (Torus)
-cube.add(mesh3.position,"x",-5,5,0.1).name("Torus X")
-cube.add(mesh3.position,"y",-5,5,0.1).name("Torus Y")
-cube.add(mesh3.position,"z",-5,5,0.1).name("Torus Z")
-cube.add(mesh3,'visible').name("Torus Visible")
-cube.add(mesh3.rotation,'x',-Math.PI,Math.PI,0.1).name("Torus X rotation")
-cube.add(mesh3.rotation,'y',-Math.PI,Math.PI,0.1).name("Torus Y rotation")
-cube.add(mesh3.rotation,'z',-Math.PI,Math.PI,0.1).name("Torus Z rotation")
-
-materialChange.spin = () => {
-    gsap.to(mesh1.rotation,{duration:1,delay:0,y:mesh1.rotation.y + 2})
-    gsap.to(mesh2.rotation,{duration:1,delay:0,y:mesh2.rotation.y + 2})
-    gsap.to(mesh3.rotation,{duration:1,delay:0,y:mesh3.rotation.y + 2})
+let cursor = {
+    x:0,
+    y:0
 }
-
-cube.add(materialChange,'spin')
-
-
-
-
-// Configure PointerLockControls
-let keyboard = []
-
-window.addEventListener("keydown",(e) => {
-    keyboard[e.key] = true
+window.addEventListener('mousemove',(event)=>{
+    cursor.x = event.clientX / size.width - 0.5
+    cursor.y = event.clientY / size.height - 0.5
 })
 
-window.addEventListener("keyup",(e) => {
-    keyboard[e.key] = false
-})
 
-let movement = () => {
-    if(keyboard["w"]){
-        pointerLock.moveForward(0.2)
-    }
-    if(keyboard["s"]){
-        pointerLock.moveForward(-0.2)
-    }
-    if(keyboard["a"]){
-        pointerLock.moveRight(-0.2)
-    }
-    if(keyboard["d"]){
-        pointerLock.moveRight(0.2)
-    }
-}
+//gui
 
-// Toggle between controls
-let isPointerLocked = false
+gui
+    .addColor(parametr,'color')
+    .onChange(()=>{
+        dots_material.color.set(parametr.color)
+    })
 
-window.addEventListener("keydown",(e) => {
-    if(e.key === "Enter"){
-        if (!isPointerLocked) {
-            pointerLock.lock()
-            isPointerLocked = true
-            orbitControls.enabled = false
-        } else {
-            pointerLock.unlock()
-            isPointerLocked = false
-            orbitControls.enabled = true
-        }
-    }
+let clock = new THREE.Clock()
+let start_time = 0
+let animation = ()=>{
     
-    // Press Escape to exit pointer lock mode
-    if(e.key === "Escape" && isPointerLocked) {
-        pointerLock.unlock()
-        isPointerLocked = false
-        orbitControls.enabled = true
-    }
-})
+    let elaps = clock.getElapsedTime()
+    let delta_time = elaps - start_time
+    start_time = elaps
 
-let animation = () => { 
-    const elapsedTime = clock.getElapsedTime()
-    
-    // Update OrbitControls damping
-    orbitControls.update()
-    
-    // Only handle movement when pointer is locked
-    if (isPointerLocked) {
-        movement()
+    for(let i in models){
+        models[i].rotation.x += delta_time * 0.1
+        models[i].rotation.y += delta_time * 0.1
+        models[i].rotation.z += delta_time * 0.1
     }
+
+    
+    camera.position.y = -scrolly / size.height * parametr.distance
+
+    camera_gp.position.x += (cursor.x - camera_gp.position.x) * 5 * delta_time
+    camera_gp.position.y += (- cursor.y - camera_gp.position.y) * 5 * delta_time
     
     renderer.render(sc,camera)
     window.requestAnimationFrame(animation)
 }
-
 animation()
-
-
