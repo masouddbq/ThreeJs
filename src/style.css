@@ -1,1 +1,32 @@
-
+*{
+    padding: 0;
+    margin: 0;
+}
+.web{
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+html{
+    background: #000000;
+}
+.section{
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 100vh;
+    text-transform: uppercase;
+    font-size: 27px;
+    margin-left: 10%;
+    margin-right: 10%;
+    font-family: 'cabin',sans-serif;
+}
+.section a{
+    text-decoration: none;
+    cursor: pointer;
+    color: #ffeded;
+}
+.section:nth-child(odd){
+    justify-content: flex-end;
+}

@@ -1,50 +1,98 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-import GUI from 'lil-gui';
-import gsap from 'gsap';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import GUI from 'lil-gui'
+import gsap from 'gsap'
 
-console.log(THREE);
+
+
 
 let sc = new THREE.Scene()
 
-// Add lighting for better text visibility
-let directionalLight = new THREE.DirectionalLight('#ffffff', 1)
-directionalLight.position.set(10, 10, 10)
-directionalLight.target.position.set(0, 0, 0)
-sc.add(directionalLight)
+let gui = new GUI({title:'color controls'})
 
-let ambientLight = new THREE.AmbientLight('#ffffff', 0.6)
-sc.add(ambientLight)
+let parametr = {
+    distance : 5,
+    cnt : 5000,
+    color:'#FFFFFF'
+}
 
+let textureloader = new THREE.TextureLoader()
+let tx_gradient = textureloader.load('gradients/3.jpg')
+tx_gradient.magFilter = THREE.NearestFilter
 
+let dots_tx = textureloader.load('textures/particles/1.png')
 
-
-
-
-
-
-
-let gui = new GUI({
-    title : "تغییرات مکعبی",
-    width : 300
+let material = new THREE.MeshToonMaterial({
+    gradientMap:tx_gradient
 })
 
+let box = new THREE.Mesh(
+    new THREE.CapsuleGeometry(1,1,1),
+    material
+)
+let cone = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.2,1,1),
+    material
+)
+let trous = new THREE.Mesh(
+    new THREE.TorusGeometry(1,0.7,12,70),
+    material
+)
+
+sc.add(box,cone,trous)
+
+box.position.y = parametr.distance * 0.1
+cone.position.y = - parametr.distance * 0.9
+trous.position.y = - parametr.distance * 2.1
+
+box.position.x = 1.5
+cone.position.x = -2
+trous.position.x = 1.5
+
+let models = [box,cone,trous]
 
 
+//particles
+
+let dots = new THREE.BufferGeometry()
+let dotspositions = new Float32Array(parametr.cnt * 3)
+for(let i = 0 ; i < parametr.cnt ; ++i){
+
+    let i3 = i * 3
+
+    dotspositions[i3 + 0] = ( Math.random() - 0.5 ) * 20
+    dotspositions[i3 + 1] = ( Math.random() - 0.5 ) * 40
+    dotspositions[i3 + 2] = ( Math.random() - 0.5 ) * 20
+
+}
+let dotsattr = new THREE.BufferAttribute(dotspositions,3)
+dots.setAttribute('position',dotsattr)
+
+let dots_material = new THREE.PointsMaterial({
+    size:0.2,
+    color:parametr.color,
+    transparent:true,
+    alphaMap:dots_tx,
+    sizeAttenuation:true,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending
+})
+
+let dotspoints = new THREE.Points(dots,dots_material)
+sc.add(dotspoints)
 
 
- 
+//light
 
+let direct = new THREE.DirectionalLight('#FFFFFF',1)
+direct.position.set(1,1,1)
+sc.add(direct) 
 
 let size = {
     width : window.innerWidth,
     height : window.innerHeight
 }
 
-window.addEventListener("resize",() => {
+window.addEventListener('resize',()=>{
     size.width = window.innerWidth
     size.height = window.innerHeight
     camera.aspect = size.width / size.height
@@ -52,163 +100,87 @@ window.addEventListener("resize",() => {
     renderer.setSize(size.width,size.height)
 })
 
+let camera_gp = new THREE.Group()
+sc.add(camera_gp)
+
+
 let camera = new THREE.PerspectiveCamera(35,size.width/size.height)
-camera.position.set(0,0,200)
-camera.lookAt(0,0,0)
-sc.add(camera)
-
-console.log('Camera position:', camera.position)
-console.log('Camera looking at:', camera.getWorldDirection(new THREE.Vector3()))
+camera.position.z = 8
+camera_gp.add(camera)
 
 
-
-
-
-let canvas = document.querySelector(".web")
-
+let canvas = document.querySelector('.web')
 let renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true
+    antialias:true,
+    alpha:true
 })
 
 renderer.setSize(size.width,size.height)
 
-const clock = new THREE.Clock()
-
-// Create both controls
-let pointerLock = new PointerLockControls(camera, canvas)
-let orbitControls = new OrbitControls(camera, canvas)
-
-// Configure OrbitControls
-orbitControls.enableDamping = true
-orbitControls.dampingFactor = 0.05
-orbitControls.enablePan = true
-orbitControls.enableZoom = true
 
 
+//scroll
 
-gui.hide()
-gui.close()
-window.addEventListener("load",() => {
-    setTimeout(() => {
-        gui.show()
-    }, 1000)
+let scrolly = window.scrollY
+let start_section = 0
+window.addEventListener('scroll',()=>{
+    scrolly = window.scrollY
+    let new_section = Math.round(scrolly / size.height)
+    if(new_section!=start_section){
+        start_section = new_section
+        gsap.to(
+            models[start_section].rotation,{
+                duration:1.8,
+                x:'+=3',
+                y:'+=3'
+            }
+        )
+    }
+
 })
 
-let cube = gui.addFolder("مکعب")
-cube.close()
+//cursor
 
-
-
-
-
-
-
-
-// Configure PointerLockControls
-let keyboard = []
-
-window.addEventListener("keydown",(e) => {
-    keyboard[e.key] = true
-})
-
-window.addEventListener("keyup",(e) => {
-    keyboard[e.key] = false
-})
-
-let movement = () => {
-    if(keyboard["w"]){
-        pointerLock.moveForward(0.2)
-    }
-    if(keyboard["s"]){
-        pointerLock.moveForward(-0.2)
-    }
-    if(keyboard["a"]){
-        pointerLock.moveRight(-0.2)
-    }
-    if(keyboard["d"]){
-        pointerLock.moveRight(0.2)
-    }
+let cursor = {
+    x:0,
+    y:0
 }
-
-// Toggle between controls
-let isPointerLocked = false
-
-window.addEventListener("keydown",(e) => {
-    if(e.key === "Enter"){
-        if (!isPointerLocked) {
-            pointerLock.lock()
-            isPointerLocked = true
-            orbitControls.enabled = false
-        } else {
-            pointerLock.unlock()
-            isPointerLocked = false
-            orbitControls.enabled = true
-        }
-    }
-    
-    // Press Escape to exit pointer lock mode
-    if(e.key === "Escape" && isPointerLocked) {
-        pointerLock.unlock()
-        isPointerLocked = false
-        orbitControls.enabled = true
-    }
+window.addEventListener('mousemove',(event)=>{
+    cursor.x = event.clientX / size.width - 0.5
+    cursor.y = event.clientY / size.height - 0.5
 })
 
 
-let fontLoader = new FontLoader()
-fontLoader.load("helvetiker_regular.typeface.json",(font) => {
-    let textGeometry = new TextGeometry("MasoudJs",{
-        font: font,
-        size: 50,
-        height: 0.05,
-        curveSegments: 0.1,
-        bevelEnabled: true,
-        bevelThickness: 0.005,
-        bevelSize: 0.01,
-        bevelOffset: 0.005,
-        bevelSegments: 5,
+//gui
+
+gui
+    .addColor(parametr,'color')
+    .onChange(()=>{
+        dots_material.color.set(parametr.color)
     })
 
-textGeometry.center()
+let clock = new THREE.Clock()
+let start_time = 0
+let animation = ()=>{
     
-    
+    let elaps = clock.getElapsedTime()
+    let delta_time = elaps - start_time
+    start_time = elaps
 
-    let textMaterial = new THREE.MeshBasicMaterial({wireframe: true,color: 'orange'})
-    let textMesh = new THREE.Mesh(textGeometry,textMaterial)
-    textMesh.position.set(0,0,0)
-    sc.add(textMesh)
-})
-
-let Sphere = new THREE.SphereGeometry(0.1,16,16)
-let SphereMaterial = new THREE.MeshBasicMaterial({color: 'whitesmoke', transparent: true, opacity: 0.8})
-let count = 2000
-for(let i = 0; i <= count; i++){
-    let SphereMesh = new THREE.Mesh(Sphere,SphereMaterial)
-    SphereMesh.scale.set(10,10,10)
-    SphereMesh.position.x = Math.random() * 800 - 400;
-    SphereMesh.position.y = Math.random() * 800 - 400
-    SphereMesh.position.z = Math.random() * 800 - 400
-    sc.add(SphereMesh)
-}
-
-
-
-let animation = () => { 
-    const elapsedTime = clock.getElapsedTime()
-    
-    // Update OrbitControls damping
-    orbitControls.update()
-    
-    // Only handle movement when pointer is locked
-    if (isPointerLocked) {
-        movement()
+    for(let i in models){
+        models[i].rotation.x += delta_time * 0.1
+        models[i].rotation.y += delta_time * 0.1
+        models[i].rotation.z += delta_time * 0.1
     }
+
+    
+    camera.position.y = -scrolly / size.height * parametr.distance
+
+    camera_gp.position.x += (cursor.x - camera_gp.position.x) * 5 * delta_time
+    camera_gp.position.y += (- cursor.y - camera_gp.position.y) * 5 * delta_time
     
     renderer.render(sc,camera)
     window.requestAnimationFrame(animation)
 }
-
 animation()
-
-
